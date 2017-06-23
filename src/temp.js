@@ -1,57 +1,31 @@
 const CDP = require('chrome-remote-interface');
+const argv = require('minimist')(process.argv.slice(2));
+const file = require('mz/fs');
+const timeout = require('delay');
 
-const log = require('./log');
+// CLI Args
+const url = argv.url || 'https://www.google.com';
+const format = argv.format === 'jpeg' ? 'jpeg' : 'png';
+const viewportWidth = argv.viewportWidth || 1440;
+const viewportHeight = argv.viewportHeight || 900;
+const delay = argv.delay || 0;
+const userAgent = argv.userAgent;
+const fullPage = argv.full;
+const output = argv.output || `output.${format === 'png' ? 'png' : 'jpg'}`;
 
-class Chromium {
-    constructor() {
-        this.defaultParams = {
-            userAgent: null,
-            viewportWidth: 1440,
-            viewportHeight: 900,
-            url: "https://coding.net",
-            delay: 1,
-            format: 'png',
-            fullPage: false,
-            output: 'screenshot.png',
-        }
-    }
-    screenshot(params={}) {
-        try {
-            return this._screenshot({
-                ...this.defaultParams,
-                ...params,
-            });
-        } catch(err) {
-            let paramsJson = null;
-            try {
-                paramsJson = JSON.stringify(params)
-            } catch (ignored) {
-            }
-            log.error('error while screenshoting with options: ' + paramJson + ' with err: ' + err);
-        }
-    }
-    _screenshot(params) {
-        
+init();
+
+async function init() {
+    try {
         // Start the Chrome Debugging Protocol
-        this.client = await CDP();
+        const client = await CDP();
         // Extract used DevTools domains.
-        const {DOM, Emulation, Network, Page, Runtime} = this.client;
+        const {DOM, Emulation, Network, Page, Runtime} = client;
 
         // Enable events on domains we are interested in.
         await Page.enable();
         await DOM.enable();
         await Network.enable();
-        
-        const {
-            userAgent,
-            viewportWidth,
-            viewportHeight,
-            url,
-            delay,
-            format,
-            fullPage,
-            output,
-        } = params;
 
         // If user agent override was specified, pass to Network domain
         if (userAgent) {
@@ -101,8 +75,7 @@ class Chromium {
         await file.writeFile(output, buffer, 'base64');
         console.log('Screenshot saved');
         client.close();
-        return buffer;
+    } catch (err) {
+        console.error('Exception while taking screenshot:', err);
     }
 }
-
-export default Chromium;
