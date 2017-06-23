@@ -6,7 +6,7 @@
   "scripts": {
      "start": "node dev/dev.js",
      "dev:delete": "pm2 delete dev_url2pic",
-     "dev:watch": "pm2 start dev/dev.js --name dev_url2pic --watch",
+     "dev:watch": "pm2_watching=true pm2 start dev/dev.js --name dev_url2pic --watch",
      "dev:log": "pm2 log",
      "dev": "yarn dev:delete ; yarn dev:watch && yarn dev:log"
   },
@@ -21,5 +21,9 @@
   },
   "engines": {
      "node": ">= 7.6.0"
-  }
+  },
+  "os": [
+     "darwin",
+     "linux"
+  ]
 }
